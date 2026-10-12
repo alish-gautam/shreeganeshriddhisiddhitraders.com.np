@@ -1,0 +1,36 @@
+---
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { getProductById } from '../../../../lib/db';
+import { getAdminEmail } from '../../../../lib/admin-auth';
+import { getSiteSettings } from '../../../../lib/site';
+
+const email = await getAdminEmail(Astro.request);
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+const product = email ? await getProductById(Astro.params.id ?? '') : null;
+const settings = email ? await getSiteSettings() : null;
+if (email && !product) Astro.response.status = 404;
+const image = product?.images.find((item) => item.is_primary === 1) ?? product?.images[0];
+---
+
+{email ? <AdminLayout title="Product preview" active="products" email={email}>
+	{product && settings ? <>
+		<div class="admin-page-heading"><div><p class="eyebrow">Private preview</p><h1>{product.name}</h1><p>This page is visible only to an authorised administrator.</p></div><a class="btn btn-outline" href={`/admin/products/${product.id}/`}>Back to editing</a></div>
+		<article class="preview-card"><div class="preview-image">{image ? <img src={`/api/admin/media/${image.id}/`} alt={image.alt_text || product.name} width={image.width ?? 900} height={image.height ?? 675} /> : <img src="/images/machine-placeholder.svg" alt="Illustrative placeholder; no product photograph supplied" width="640" height="480" />}</div><div class="preview-info"><a class="eyebrow" href={`/categories/${product.category_slug}/`}>{product.category_name}</a>{product.is_demo === 1 && <span class="status-label">Sample content</span>}<h2>{product.name}</h2><p>{product.short_description}</p><div class="preview-price">{product.price_mode === 'quote' ? 'Price on request' : `${product.price_mode === 'from' ? 'From ' : ''}${new Intl.NumberFormat('en-NP', { style: 'currency', currency: product.price_currency, maximumFractionDigits: 0 }).format(product.price_amount ?? 0)}`}</div><p>{product.description}</p>{Object.entries(product.specifications).length > 0 && <dl>{Object.entries(product.specifications).map(([key, value]) => <div><dt>{key}</dt><dd>{value}</dd></div>)}</dl>}<a class="btn btn-primary" href={`/contact/?product=${encodeURIComponent(product.id)}`}>Enquire about this machine</a></div></article>
+	</> : <div class="admin-empty">Product not found.</div>}
+</AdminLayout> : <main class="admin-denied"><h1>Administrator access required.</h1><p>Use the configured Cloudflare Access application to continue.</p><a class="btn btn-outline" href="/">Return to the public site</a></main>}
+
+<style>
+	.preview-card { display: grid; grid-template-columns: 1fr; overflow: hidden; border: 1px solid var(--line); border-radius: .4rem; background: var(--page); }
+	.preview-image { display: grid; aspect-ratio: 4/3; background: var(--surface); }
+	.preview-image img { width: 100%; height: 100%; object-fit: contain; }
+	.preview-info { display: grid; align-content: start; justify-items: start; gap: .5rem; padding: clamp(1rem,3vw,2rem); }
+	.preview-info h2 { margin: .2rem 0; font-family: var(--font-display); font-size: clamp(1.7rem,4vw,2.8rem); line-height: 1.08; }
+	.preview-info > p { white-space: pre-line; }
+	.preview-info > p:not(:first-of-type) { color: var(--muted); }
+	.preview-price { border-block: 1px solid var(--line); padding-block: .7rem; font-weight: 800; }
+	.preview-info dl { width: 100%; }
+	.preview-info dl div { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; border-top: 1px solid var(--line); padding: .5rem 0; }
+	.preview-info dt { color: var(--muted); }
+	.preview-info dd { margin: 0; }
+	@media (min-width: 56rem) { .preview-card { grid-template-columns: 1fr 1fr; } }
+</style>

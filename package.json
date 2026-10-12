@@ -1,17 +1,38 @@
 {
-  "name": "",
+  "name": "shreeganesh-riddhisiddhi-traders",
   "type": "module",
   "version": "0.0.1",
   "engines": {
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "astro dev --background",
     "build": "astro build",
+    "build:preview": "node scripts/build-preview.mjs",
+    "build:production": "node scripts/build-production.mjs",
     "preview": "astro preview",
+    "check": "astro check",
+    "test": "node --experimental-strip-types --test tests/validation.test.ts",
+    "db:local:migrate": "wrangler d1 migrations apply sg-rs-catalog --local",
+    "db:local:demo": "wrangler d1 execute sg-rs-catalog --local --file=seed/demo.sql",
+    "db:preview:migrate": "wrangler d1 migrations apply sg-rs-catalog-preview --env preview --remote",
+    "db:preview:demo": "wrangler d1 execute sg-rs-catalog-preview --env preview --remote --file=seed/demo.sql",
+    "db:production:migrate": "wrangler d1 migrations apply sg-rs-catalog-production --env production --remote",
+    "deploy:preview": "npm run build:preview && wrangler deploy --env preview",
+    "deploy": "npm run build:production && wrangler deploy --env production",
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^7.3.8"
+    "@astrojs/cloudflare": "^14.3.4",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.8",
+    "jose": "^6.2.12",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/node": "^26.6.5",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.149.0"
   }
 }

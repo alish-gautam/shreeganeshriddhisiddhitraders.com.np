@@ -1,0 +1,77 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { listCategories, listProducts } from '../../lib/db';
+import { parseCatalogQuery } from '../../lib/validation';
+
+const filters = parseCatalogQuery(Astro.url.searchParams);
+const [catalog, categories] = await Promise.all([
+	listProducts({ ...filters }),
+	listCategories(),
+]);
+const pageCount = Math.max(1, Math.ceil(catalog.count / catalog.pageSize));
+const activeFilters = Boolean(filters.query || filters.category || filters.sort !== 'newest' || filters.page > 1);
+function pageUrl(page: number) {
+	const query = new URLSearchParams(Astro.url.searchParams);
+	query.set('page', String(page));
+	return `/machines/?${query.toString()}`;
+}
+---
+
+<Layout title="Browse machinery | Shree Ganesh Riddhi Siddhi Traders" description="Search and browse the machine catalogue from Shree Ganesh Riddhi Siddhi Traders in Biratnagar, Nepal." canonical="/machines/" noindex={activeFilters}>
+	<main id="main-content">
+		<Breadcrumbs items={[{ label: 'Machinery' }]} />
+		<section class="container-page catalog-head">
+			<div><p class="eyebrow">Machine catalogue</p><h1 class="page-title">Browse machinery.</h1><p class="muted">Search listings and compare the information currently available.</p></div>
+			<span class="results-count"><strong>{catalog.count}</strong> {catalog.count === 1 ? 'listing' : 'listings'}</span>
+		</section>
+		<section class="container-page catalog-layout" aria-label="Machine catalogue">
+			<aside class="catalog-filter card">
+				<h2>Find a machine</h2>
+				<form action="/machines/" method="get" class="filter-form">
+					<div class="field"><label for="q">Search</label><input class="control" id="q" name="q" type="search" value={filters.query} placeholder="Name or keyword" maxlength="80" /></div>
+					<div class="field"><label for="category">Category</label><select class="control" id="category" name="category"><option value="">All categories</option>{categories.map((category) => <option value={category.slug} selected={category.slug === filters.category}>{category.name}</option>)}</select></div>
+					<div class="field"><label for="sort">Sort by</label><select class="control" id="sort" name="sort"><option value="newest" selected={filters.sort === 'newest'}>Recently added</option><option value="name" selected={filters.sort === 'name'}>Name A–Z</option><option value="featured" selected={filters.sort === 'featured'}>Featured first</option></select></div>
+					<input type="hidden" name="page" value="1" />
+					<button class="btn btn-ink" type="submit">Apply filters</button>
+					{activeFilters && <a class="reset-link" href="/machines/">Clear filters</a>}
+				</form>
+			</aside>
+			<div class="catalog-results">
+				{catalog.items.length > 0 ? <div class="product-grid">{catalog.items.map((product) => <ProductCard product={product} />)}</div> : <div class="empty-results card"><span class="empty-mark" aria-hidden="true">⌕</span><h2>No machines found.</h2><p>{filters.query || filters.category ? 'Try a broader search or remove one of the filters.' : 'The catalogue is being prepared. Contact the business with your requirements.'}</p>{activeFilters ? <a class="btn btn-outline" href="/machines/">Clear filters</a> : <a class="btn btn-primary" href="/contact/">Make an enquiry</a>}</div>}
+				{pageCount > 1 && <nav class="pagination" aria-label="Catalogue pages">
+					{filters.page > 1 && <a class="btn btn-outline" href={pageUrl(filters.page - 1)}>← Previous</a>}
+					<span>Page {filters.page} of {pageCount}</span>
+					{filters.page < pageCount && <a class="btn btn-outline" href={pageUrl(filters.page + 1)}>Next →</a>}
+				</nav>}
+			</div>
+		</section>
+	</main>
+</Layout>
+
+<style>
+	.catalog-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem; padding-block: 1.4rem 2rem; }
+	.catalog-head h1 { margin: .35rem 0 .4rem; }
+	.catalog-head p:not(.eyebrow) { margin: 0; }
+	.page-title { font-family: var(--font-display); font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.08; letter-spacing: -.05em; }
+	.results-count { color: var(--muted); font-size: .85rem; }
+	.results-count strong { color: var(--body); font-size: 1rem; }
+	.catalog-layout { display: grid; align-items: start; gap: 1.4rem; padding-bottom: 5rem; }
+	.catalog-filter { padding: 1.1rem; }
+	.catalog-filter h2 { margin: 0 0 .9rem; font-family: var(--font-display); font-size: 1.05rem; }
+	.filter-form { display: grid; gap: .9rem; }
+	.filter-form .btn { margin-top: .2rem; }
+	.reset-link { text-align: center; font-size: .82rem; font-weight: 700; }
+	.catalog-results { min-width: 0; }
+	.catalog-results .product-grid { grid-template-columns: 1fr; }
+	.empty-results { display: grid; justify-items: start; gap: .4rem; padding: 2rem; }
+	.empty-results h2, .empty-results p { margin: 0; }
+	.empty-results p { max-width: 35rem; color: var(--muted); }
+	.empty-mark { color: var(--link); font-size: 2.1rem; line-height: 1; }
+	.empty-results .btn { margin-top: .7rem; }
+	.pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .9rem; margin-top: 2rem; }
+	.pagination > span { color: var(--muted); font-size: .82rem; }
+	@media (min-width: 40rem) { .catalog-results .product-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+	@media (min-width: 60rem) { .catalog-layout { grid-template-columns: 16rem minmax(0,1fr); gap: 2rem; } .catalog-filter { position: sticky; top: 1rem; } .catalog-results .product-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+</style>

@@ -1,0 +1,86 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getProductBySlug } from '../../lib/db';
+import { absoluteUrl, getSiteSettings } from '../../lib/site';
+
+const product = await getProductBySlug(Astro.params.slug ?? '');
+if (!product) Astro.response.status = 404;
+const settings = await getSiteSettings();
+const title = product ? `${product.seo_title || product.name} | ${settings.businessName}` : 'Machine not found';
+const description = product ? product.seo_description || product.short_description || `Information about ${product.name} from ${settings.businessName}. Contact the business to confirm current details and pricing.` : 'The requested machine could not be found in the published catalogue.';
+const mainImage = product?.images.find((image) => image.is_primary === 1) ?? product?.images[0];
+const priceLabel = product?.price_mode === 'quote' ? 'Price on request' : `${product?.price_mode === 'from' ? 'From ' : ''}${new Intl.NumberFormat('en-NP', { style: 'currency', currency: product?.price_currency ?? 'NPR', maximumFractionDigits: 0 }).format(product?.price_amount ?? 0)}`;
+const schema = product && product.is_demo !== 1 ? {
+	'@context': 'https://schema.org', '@type': 'Product', name: product.name,
+	description: product.short_description || product.description,
+	image: product.images.map((image) => absoluteUrl(`/media/${image.key.split('/').map(encodeURIComponent).join('/')}`)),
+	category: product.category_name,
+	...(product.price_mode !== 'quote' && product.price_amount !== null ? { offers: { '@type': 'Offer', priceCurrency: product.price_currency, price: product.price_amount, url: absoluteUrl(`/machines/${product.slug}/`) } } : {}),
+} : undefined;
+---
+
+<Layout title={title} description={description} noindex={!product || product.is_demo === 1} structuredData={schema}>
+	<main id="main-content">
+		{product ? <>
+			<Breadcrumbs items={[{ label: 'Machinery', href: '/machines/' }, { label: product.category_name, href: `/categories/${product.category_slug}/` }, { label: product.name }]} />
+			<article class="container-page product-detail">
+				<div class="product-gallery">
+					<div class="main-image">
+						{mainImage ? <img src={`/media/${mainImage.key.split('/').map(encodeURIComponent).join('/')}`} alt={mainImage.alt_text || product.name} width={mainImage.width ?? 900} height={mainImage.height ?? 675} fetchpriority="high" /> : <img src="/images/machine-placeholder.svg" alt="Illustrative machinery placeholder; no product photograph supplied" width="640" height="480" fetchpriority="high" />}
+					</div>
+					{product.images.length > 1 && <div class="gallery-thumbs" aria-label="More product images">{product.images.filter((image) => image.id !== mainImage?.id).map((image) => <figure><img src={`/media/${image.key.split('/').map(encodeURIComponent).join('/')}`} alt={image.alt_text || `${product.name} — additional view`} width={image.width ?? 240} height={image.height ?? 180} loading="lazy" /><figcaption>{image.alt_text || 'Additional view'}</figcaption></figure>)}</div>}
+				</div>
+				<div class="product-summary">
+					<a class="eyebrow category-link" href={`/categories/${product.category_slug}/`}>{product.category_name}</a>
+					{product.is_demo === 1 && <p class="sample-note"><strong>Sample listing.</strong> Replace this record with verified product information before launch.</p>}
+					<h1>{product.name}</h1>
+					<p class="short-description">{product.short_description || 'Contact the business for confirmed product information.'}</p>
+					<div class="price-panel"><span class="price-label">{priceLabel}</span><span class="price-caption">Final pricing and availability should be confirmed with the business.</span></div>
+					<a class="btn btn-primary enquiry-button" href={`/contact/?product=${encodeURIComponent(product.id)}`}>Enquire about this machine <span aria-hidden="true">→</span></a>
+					<p class="direct-contact">Share your requirements and the business can clarify any details you need.</p>
+				</div>
+				<section class="product-description">
+					<p class="eyebrow">Machine information</p><h2>Product details</h2>
+					{product.description ? <p class="description-text">{product.description}</p> : <p class="muted">Further product details have not been supplied yet. Contact the business to ask for confirmed information.</p>}
+				</section>
+				{Object.entries(product.specifications).length > 0 && <section class="product-specs"><p class="eyebrow">Confirmed details</p><h2>Specifications</h2><dl>{Object.entries(product.specifications).map(([label, value]) => <div><dt>{label}</dt><dd>{value}</dd></div>)}</dl></section>}
+				<div class="product-bottom-cta"><div><strong>Need more information?</strong><span>Send a question about this listing.</span></div><a class="btn btn-ink" href={`/contact/?product=${encodeURIComponent(product.id)}`}>Send an enquiry</a></div>
+			</article>
+		</> : <section class="container-page not-found"><p class="eyebrow">Page not found</p><h1>That machine is not in the published catalogue.</h1><p>It may have been removed or the address may have changed.</p><a class="btn btn-primary" href="/machines/">Browse machinery</a></section>}
+	</main>
+</Layout>
+
+<style>
+	.product-detail { display: grid; grid-template-columns: 1fr; gap: 2rem; padding-bottom: 5rem; }
+	.product-gallery, .product-summary { min-width: 0; }
+	.main-image { display: grid; aspect-ratio: 4/3; overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
+	.main-image img { width: 100%; height: 100%; object-fit: contain; }
+	.gallery-thumbs { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .7rem; margin-top: .7rem; }
+	.gallery-thumbs figure { margin: 0; border: 1px solid var(--line); background: var(--surface); }
+	.gallery-thumbs img { width: 100%; aspect-ratio: 4/3; object-fit: contain; }
+	.gallery-thumbs figcaption { padding: .35rem .5rem; color: var(--muted); font-size: .7rem; }
+	.category-link { width: fit-content; text-decoration: none; }
+	.product-summary h1 { margin: .5rem 0 .8rem; font-family: var(--font-display); font-size: clamp(2.2rem,5vw,3.8rem); letter-spacing: -.05em; line-height: 1.06; }
+	.short-description { color: var(--muted); font-size: 1.05rem; }
+	.sample-note { border-left: 3px solid var(--accent); background: #fff5dd; padding: .7rem .8rem; color: #604718; font-size: .83rem; }
+	:global(:root[data-theme="dark"]) .sample-note { background: #463813; color: #ffdf98; }
+	.price-panel { display: grid; gap: .2rem; border-block: 1px solid var(--line); margin-block: 1.4rem; padding-block: 1rem; }
+	.price-label { font-family: var(--font-display); font-size: 1.35rem; font-weight: 750; }
+	.price-caption, .direct-contact { color: var(--muted); font-size: .82rem; }
+	.enquiry-button { width: 100%; }
+	.direct-contact { margin-block: .7rem 0; }
+	.product-description, .product-specs { grid-column: 1/-1; border-top: 1px solid var(--line); padding-top: 1.4rem; }
+	.product-description h2, .product-specs h2 { margin: .25rem 0 .65rem; font-family: var(--font-display); font-size: 1.4rem; }
+	.description-text { max-width: 55rem; white-space: pre-line; }
+	.product-specs dl { margin: .7rem 0 0; border-top: 1px solid var(--line); }
+	.product-specs dl > div { display: grid; grid-template-columns: 1fr; gap: .2rem; border-bottom: 1px solid var(--line); padding: .7rem 0; }
+	.product-specs dt { color: var(--muted); font-size: .83rem; font-weight: 700; }
+	.product-specs dd { margin: 0; font-weight: 650; font-variant-numeric: tabular-nums; }
+	.product-bottom-cta { display: flex; grid-column: 1/-1; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border: 1px solid var(--line); background: var(--surface); padding: 1.1rem; }
+	.product-bottom-cta div { display: grid; }
+	.product-bottom-cta span { color: var(--muted); font-size: .84rem; }
+	.not-found { min-height: 25rem; padding-block: 5rem; }
+	.not-found h1 { max-width: 42rem; font-family: var(--font-display); font-size: clamp(2rem,5vw,3.2rem); line-height: 1.1; }
+	@media (min-width: 48rem) { .product-detail { grid-template-columns: minmax(0,1.1fr) minmax(20rem,.9fr); gap: 2rem 3rem; } .product-specs dl > div { grid-template-columns: minmax(10rem, .8fr) 1.2fr; gap: 1rem; } }
+</style>

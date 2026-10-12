@@ -1,0 +1,36 @@
+---
+import type { Category, Product } from '../lib/models';
+interface Props { categories: Category[]; product?: Product; error?: string | null }
+const { categories, product, error } = Astro.props;
+const action = product ? `/api/admin/products/${product.id}/` : '/api/admin/products/';
+const specs = product ? JSON.stringify(product.specifications, null, 2) : '{}';
+---
+
+{error && <p class="admin-alert" role="alert">{error}</p>}
+{categories.length === 0 ? <div class="admin-empty">Add a category before creating a product.</div> : <form class="admin-form" action={action} method="post">
+	<div class="form-grid two-col">
+		<div class="field"><label for="name">Product name <span aria-hidden="true">*</span></label><input class="control" id="name" name="name" required maxlength="120" value={product?.name ?? ''} /></div>
+		<div class="field"><label for="category_id">Category <span aria-hidden="true">*</span></label><select class="control" id="category_id" name="category_id" required><option value="">Choose a category</option>{categories.map((category) => <option value={category.id} selected={category.id === product?.category_id}>{category.name}</option>)}</select></div>
+	</div>
+	<div class="field"><label for="short_description">Short description</label><input class="control" id="short_description" name="short_description" maxlength="240" value={product?.short_description ?? ''} /><small class="muted">A concise summary for product cards.</small></div>
+	<div class="field"><label for="description">Product details</label><textarea class="control" id="description" name="description" rows="7" maxlength="8000">{product?.description ?? ''}</textarea><small class="muted">Use verified information only. Do not add unsupported specifications or service claims.</small></div>
+	<div class="form-grid two-col">
+		<div class="field"><label for="price_mode">Pricing</label><select class="control" id="price_mode" name="price_mode"><option value="quote" selected={!product || product.price_mode === 'quote'}>Price on request</option><option value="fixed" selected={product?.price_mode === 'fixed'}>Fixed price</option><option value="from" selected={product?.price_mode === 'from'}>Price from</option></select></div>
+		<div class="field"><label for="price_amount">Price in NPR (whole rupees)</label><input class="control" id="price_amount" name="price_amount" type="number" min="0" step="1" value={product?.price_amount ?? ''} /><small class="muted">Leave blank for price on request.</small></div>
+	</div>
+	<div class="field"><label for="specifications">Specifications (JSON)</label><textarea class="control" id="specifications" name="specifications" rows="7" spellcheck="false">{specs}</textarea><small class="muted">Example: {'{ "Power supply": "...", "Dimensions": "..." }'}. Add values only when confirmed.</small></div>
+	<div class="form-grid two-col">
+		<div class="field"><label for="seo_title">SEO title</label><input class="control" id="seo_title" name="seo_title" maxlength="70" value={product?.seo_title ?? ''} /><small class="muted">Optional. The product name is used by default.</small></div>
+		<div class="field"><label for="seo_description">SEO description</label><textarea class="control" id="seo_description" name="seo_description" rows="3" maxlength="160">{product?.seo_description ?? ''}</textarea><small class="muted">Optional, up to 160 characters.</small></div>
+	</div>
+	<div class="form-grid two-col">
+		<div class="field"><label for="status">Publication</label><select class="control" id="status" name="status"><option value="draft" selected={!product || product.status === 'draft'}>Draft</option><option value="published" selected={product?.status === 'published'}>Published</option><option value="archived" selected={product?.status === 'archived'}>Archived</option></select></div>
+		<div class="admin-check-group"><label class="admin-checkbox"><input type="checkbox" name="is_featured" checked={product?.is_featured === 1} />Feature this product on the homepage</label><label class="admin-checkbox"><input type="checkbox" name="is_demo" checked={product?.is_demo === 1} />Mark as sample/demo content</label></div>
+	</div>
+	<div class="admin-actions"><button class="btn btn-primary" type="submit">{product ? 'Save changes' : 'Create product'}</button><a class="btn btn-outline" href="/admin/products/">Cancel</a></div>
+</form>}
+
+<style>
+	.admin-check-group { display: grid; align-content: center; gap: .6rem; }
+	.admin-form small { display: block; margin-top: .15rem; font-size: .75rem; }
+</style>

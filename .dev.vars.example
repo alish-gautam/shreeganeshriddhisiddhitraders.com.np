@@ -1,0 +1,5 @@
+# Local admin mutation endpoints require a real Cloudflare Access JWT.
+# These values do not create a local authentication bypass.
+ACCESS_TEAM_DOMAIN=your-team.cloudflareaccess.com
+ACCESS_AUD=your-access-application-audience-tag
+ADMIN_EMAILS=owner@example.com

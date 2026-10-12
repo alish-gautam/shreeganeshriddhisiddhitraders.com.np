@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Illustrative machinery placeholder</title>
+  <desc id="desc">A geometric outline illustration marked as a sample, not a product photograph.</desc>
+  <defs><linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f9fbfc"/><stop offset="1" stop-color="#e7edf0"/></linearGradient></defs>
+  <path fill="url(#bg)" d="M0 0h640v480H0z"/><path stroke="#d4dfe5" stroke-width="2" d="M64 80h512M64 144h512M64 208h512M64 272h512M64 336h512M64 400h512M96 48v384M160 48v384M224 48v384M288 48v384M352 48v384M416 48v384M480 48v384M544 48v384"/>
+  <g fill="none" stroke="#42677e" stroke-linecap="round" stroke-linejoin="round" stroke-width="9"><path d="M188 326h264M211 326V180h217v146M241 180l22-40h114l22 40M238 326v-79h166v79M270 247v49m48-49v49m48-49v49"/><path d="M276 140V98h85v42M302 98V73h33v25"/></g>
+  <path fill="#efad36" d="M218 357h204v37H218z"/><text x="320" y="382" fill="#172b3b" font-family="Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="4" text-anchor="middle">ILLUSTRATIVE</text>
+  <text x="320" y="432" fill="#5c6d78" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="3" text-anchor="middle">SAMPLE CATALOGUE ART</text>
+</svg>

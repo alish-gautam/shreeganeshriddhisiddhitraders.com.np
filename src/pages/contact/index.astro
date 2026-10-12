@@ -1,0 +1,72 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getPublishedProductById } from '../../lib/db';
+import { getSiteSettings } from '../../lib/site';
+
+const productId = Astro.url.searchParams.get('product') ?? '';
+const [product, settings] = await Promise.all([
+	productId ? getPublishedProductById(productId) : Promise.resolve(null), getSiteSettings(),
+]);
+const status = Astro.url.searchParams.get('sent') ? 'success' : Astro.url.searchParams.get('error');
+---
+
+<Layout title={`Contact | ${settings.businessName}`} description="Contact Shree Ganesh Riddhi Siddhi Traders in Biratnagar, Nepal, or send an enquiry about a machinery listing.">
+	<main id="main-content">
+		<Breadcrumbs items={[{ label: 'Contact' }]} />
+		<section class="container-page contact-layout">
+			<div class="contact-intro"><p class="eyebrow">Contact the business</p><h1>Let’s talk about what you need.</h1><p class="muted">Share a few details about your machinery requirement. The business can follow up to confirm product information, availability, and pricing.</p>
+				<div class="contact-facts">
+					{settings.phone && <div><span>Phone</span><a href={`tel:${settings.phone.replace(/[^+\d]/g, '')}`}>{settings.phone}</a></div>}
+					{settings.email && <div><span>Email</span><a href={`mailto:${settings.email}`}>{settings.email}</a></div>}
+					{settings.address && <div><span>Location</span><p>{settings.address}</p></div>}
+				</div>
+			</div>
+			<div class="contact-form card">
+				{status === 'success' ? <div class="form-success" role="status"><span class="success-mark" aria-hidden="true">✓</span><h2>Your enquiry has been received.</h2><p>Thank you for contacting {settings.businessName}. Your message is saved for the business to review.</p><a class="btn btn-outline" href="/machines/">Continue browsing</a></div> : <>
+					<h2>Send an enquiry</h2>
+					{status === 'invalid' && <p class="form-alert" role="alert">Please check the details and try again. Your email and message are required.</p>}
+					{status === 'unavailable' && <p class="form-alert" role="alert">The enquiry form is temporarily unavailable. Please try again later or use a configured contact method.</p>}
+					{product && <p class="selected-product">About: <strong>{product.name}</strong></p>}
+					<form class="form-grid" action="/api/enquiries/" method="post">
+						<input type="hidden" name="product_id" value={product?.id ?? ''} />
+						<div class="honeypot" aria-hidden="true"><label for="website">Leave this field blank</label><input id="website" name="website" tabindex="-1" autocomplete="off" /></div>
+						<div class="field"><label for="name">Your name <span aria-hidden="true">*</span></label><input class="control" id="name" name="name" required maxlength="120" autocomplete="name" /></div>
+						<div class="form-grid two-col"><div class="field"><label for="email">Email <span aria-hidden="true">*</span></label><input class="control" id="email" name="email" type="email" required maxlength="254" autocomplete="email" /></div><div class="field"><label for="phone">Phone (optional)</label><input class="control" id="phone" name="phone" type="tel" maxlength="40" autocomplete="tel" /></div></div>
+						<div class="field"><label for="message">What would you like to know? <span aria-hidden="true">*</span></label><textarea class="control" id="message" name="message" required maxlength="4000" rows="6" placeholder="Tell us about the machine or application you have in mind."></textarea></div>
+						<label class="consent"><input type="checkbox" name="consent" required /><span>I agree that the business can use these details to respond to my enquiry. See the <a href="/privacy/">privacy policy</a>.</span></label>
+						<button class="btn btn-primary" type="submit">Send enquiry <span aria-hidden="true">→</span></button>
+						<p class="privacy-note">Your information is stored so the business can review and respond to your request.</p>
+					</form>
+				</>}
+			</div>
+		</section>
+	</main>
+</Layout>
+
+<style>
+	.contact-layout { display: grid; gap: 2rem; padding-block: 1rem 5rem; }
+	.contact-intro { padding-top: .7rem; }
+	.contact-intro h1 { max-width: 42rem; margin: .4rem 0 .7rem; font-family: var(--font-display); font-size: clamp(2.5rem,5vw,4.2rem); letter-spacing: -.055em; line-height: 1.04; }
+	.contact-intro > p:not(.eyebrow) { max-width: 38rem; }
+	.contact-facts { display: grid; gap: .75rem; margin-top: 2rem; }
+	.contact-facts > div { display: grid; gap: .12rem; border-top: 1px solid var(--line); padding-top: .6rem; }
+	.contact-facts span { color: var(--muted); font-size: .74rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+	.contact-facts p { margin: 0; }
+	.contact-form { padding: clamp(1.1rem,3vw,1.8rem); }
+	.contact-form h2 { margin: 0 0 1rem; font-family: var(--font-display); font-size: 1.4rem; }
+	.contact-form form { gap: 1rem; }
+	.consent { display: flex; align-items: start; gap: .6rem; color: var(--muted); font-size: .8rem; }
+	.consent input { width: 1.1rem; height: 1.1rem; flex: 0 0 auto; margin-top: .12rem; accent-color: var(--link); }
+	.consent a { font-weight: 700; }
+	.privacy-note { margin: -.4rem 0 0; color: var(--muted); font-size: .74rem; }
+	.form-alert { border-left: 3px solid #b13e32; background: #fff0ee; padding: .65rem .8rem; color: #71251d; font-size: .87rem; }
+	:global(:root[data-theme="dark"]) .form-alert { background: #482522; color: #ffd2cc; }
+	.selected-product { border-left: 3px solid var(--accent); background: var(--surface); padding: .6rem .75rem; font-size: .84rem; }
+	.form-success { display: grid; justify-items: start; gap: .6rem; }
+	.form-success h2, .form-success p { margin: 0; }
+	.form-success p { color: var(--muted); }
+	.success-mark { display: grid; width: 2.7rem; height: 2.7rem; place-items: center; border-radius: 50%; background: #e5f3e8; color: #226436; font-size: 1.3rem; font-weight: 850; }
+	.honeypot { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+	@media (min-width: 58rem) { .contact-layout { grid-template-columns: .9fr 1.1fr; gap: 4rem; } }
+</style>

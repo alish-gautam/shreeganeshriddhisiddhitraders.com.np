@@ -1,0 +1,80 @@
+---
+import '../styles/global.css';
+interface Props { title: string; active: string; email: string }
+const { title, active, email } = Astro.props;
+const navigation = [
+	{ id: 'overview', label: 'Overview', href: '/admin/' },
+	{ id: 'products', label: 'Products', href: '/admin/products/' },
+	{ id: 'categories', label: 'Categories', href: '/admin/categories/' },
+	{ id: 'enquiries', label: 'Enquiries', href: '/admin/enquiries/' },
+	{ id: 'settings', label: 'Site settings', href: '/admin/settings/' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex, nofollow, noarchive" /><meta name="theme-color" content="#122234" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" /><title>{title} · SGRS Admin</title>
+	</head>
+	<body class="admin-body">
+		<a class="skip-link" href="#admin-content">Skip to dashboard</a>
+		<div class="admin-shell">
+			<aside class="admin-sidebar">
+				<a class="admin-brand" href="/admin/"><span>SGRS</span><small>ADMINISTRATION</small></a>
+				<nav aria-label="Administration">
+					{navigation.map((item) => <a href={item.href} class:list={{ active: item.id === active }} aria-current={item.id === active ? 'page' : undefined}>{item.label}</a>)}
+				</nav>
+				<a class="back-site" href="/">← View public site</a>
+			</aside>
+			<div class="admin-main">
+				<header class="admin-topbar"><span>Shree Ganesh Riddhi Siddhi Traders</span><span class="admin-email">{email}</span></header>
+				<main id="admin-content" class="admin-content"><slot /></main>
+			</div>
+		</div>
+	</body>
+</html>
+
+<style>
+	.admin-body { min-height: 100vh; background: var(--surface); }
+	.admin-shell { display: grid; min-height: 100vh; grid-template-columns: 1fr; }
+	.admin-sidebar { display: flex; flex-direction: column; gap: 1rem; background: var(--navy); padding: .75rem 1rem; color: #fff; }
+	.admin-brand { display: grid; width: fit-content; color: #fff; line-height: 1.1; text-decoration: none; }
+	.admin-brand span { font-family: var(--font-display); font-size: 1.2rem; font-weight: 850; letter-spacing: .12em; }
+	.admin-brand small { margin-top: .2rem; color: #c3d1da; font-size: .57rem; font-weight: 800; letter-spacing: .16em; }
+	.admin-sidebar nav { display: flex; overflow-x: auto; gap: .35rem; }
+	.admin-sidebar nav a { min-width: max-content; border-radius: .25rem; padding: .5rem .65rem; color: #d2dce3; font-size: .82rem; text-decoration: none; }
+	.admin-sidebar nav a:hover, .admin-sidebar nav a.active { background: #243d52; color: #fff; }
+	.back-site { display: none; margin-top: auto; color: #d3dce3; font-size: .82rem; text-decoration: none; }
+	.admin-main { min-width: 0; }
+	.admin-topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; border-bottom: 1px solid var(--line); background: var(--page); padding: .85rem 1rem; font-size: .82rem; font-weight: 700; }
+	.admin-email { color: var(--muted); font-size: .75rem; font-weight: 500; }
+	.admin-content { width: min(100%, 78rem); margin-inline: auto; padding: 1.2rem 1rem 3rem; }
+	.admin-page-heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; }
+	.admin-page-heading h1 { margin: .2rem 0 0; font-family: var(--font-display); font-size: clamp(1.8rem,4vw,2.6rem); letter-spacing: -.04em; line-height: 1.1; }
+	.admin-page-heading p { margin: .3rem 0 0; color: var(--muted); font-size: .9rem; }
+	.admin-panel { border: 1px solid var(--line); border-radius: .4rem; background: var(--page); padding: 1rem; }
+	.admin-panel h2 { margin: 0 0 .8rem; font-family: var(--font-display); font-size: 1.1rem; }
+	.admin-list { display: grid; gap: .65rem; }
+	.admin-list-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .65rem; border: 1px solid var(--line); border-radius: .3rem; background: var(--page); padding: .75rem; }
+	.admin-list-row > div:first-child { display: grid; min-width: 0; }
+	.admin-list-row small { color: var(--muted); font-size: .75rem; }
+	.admin-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; }
+	.admin-table-wrap { overflow-x: auto; }
+	.admin-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+	.admin-table th, .admin-table td { border-bottom: 1px solid var(--line); padding: .65rem .5rem; text-align: left; vertical-align: top; }
+	.admin-table th { color: var(--muted); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
+	.admin-table td a { font-weight: 750; }
+	.admin-form { display: grid; gap: 1rem; }
+	.admin-form .two-col { display: grid; gap: .9rem; }
+	.admin-form .control { background: var(--page); }
+	.admin-checkbox { display: flex; align-items: start; gap: .55rem; color: var(--body); font-size: .87rem; }
+	.admin-checkbox input { width: 1.1rem; height: 1.1rem; margin-top: .13rem; accent-color: var(--link); }
+	.admin-callout { border-left: 3px solid var(--accent); background: var(--surface); padding: .7rem .85rem; color: var(--muted); font-size: .84rem; }
+	.admin-alert { margin-bottom: 1rem; border-left: 3px solid #b33c32; background: #fff0ed; padding: .7rem .85rem; color: #762b23; font-size: .85rem; }
+	:global(:root[data-theme="dark"]) .admin-alert { background: #4a2521; color: #ffd7d1; }
+	.admin-actions { display: flex; flex-wrap: wrap; gap: .55rem; }
+	.admin-empty { border: 1px dashed var(--line); border-radius: .35rem; padding: 1.4rem; color: var(--muted); }
+	@media (min-width: 56rem) { .admin-shell { grid-template-columns: 14rem minmax(0,1fr); } .admin-sidebar { min-height: 100vh; padding: 1.25rem 1rem; } .admin-sidebar nav { flex-direction: column; overflow: visible; } .admin-sidebar nav a { padding: .65rem .7rem; } .back-site { display: block; } .admin-topbar { padding-inline: 1.6rem; } .admin-content { padding: 1.8rem 1.6rem 4rem; } .admin-panel { padding: 1.25rem; } .admin-form .two-col { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+</style>

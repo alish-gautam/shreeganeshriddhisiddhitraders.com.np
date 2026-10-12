@@ -1,0 +1,37 @@
+---
+import type { Product } from '../lib/models';
+interface Props { product: Product }
+const { product } = Astro.props;
+const image = product.images[0];
+const imagePath = image ? `/media/${image.key.split('/').map(encodeURIComponent).join('/')}` : '/images/machine-placeholder.svg';
+const price = product.price_mode === 'quote' ? 'Price on request' : `${product.price_mode === 'from' ? 'From ' : ''}${new Intl.NumberFormat('en-NP', { style: 'currency', currency: product.price_currency, maximumFractionDigits: 0 }).format(product.price_amount ?? 0)}`;
+---
+
+<article class="product-card card">
+	<a class="product-image" href={`/machines/${product.slug}/`} aria-label={`View ${product.name}`}>
+		<img src={imagePath} alt={image?.alt_text || (image ? product.name : 'Illustrative machinery placeholder; no product photograph supplied')} width={image?.width ?? 640} height={image?.height ?? 480} loading="lazy" />
+		{product.is_demo === 1 && <span class="demo-tag">Sample</span>}
+	</a>
+	<div class="product-info">
+		<a class="product-category" href={`/categories/${product.category_slug}/`}>{product.category_name}</a>
+		<h3><a href={`/machines/${product.slug}/`}>{product.name}</a></h3>
+		<p>{product.short_description || 'Contact the business for confirmed product information.'}</p>
+		<div class="product-meta"><span>{price}</span><a href={`/machines/${product.slug}/`} aria-label={`View details for ${product.name}`}>Details <span aria-hidden="true">↗</span></a></div>
+	</div>
+</article>
+
+<style>
+	.product-card { overflow: hidden; height: 100%; transition: transform 160ms ease, box-shadow 160ms ease; }
+	.product-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+	.product-image { position: relative; display: block; aspect-ratio: 4/3; overflow: hidden; background: var(--surface); }
+	.product-image img { width: 100%; height: 100%; object-fit: contain; }
+	.demo-tag { position: absolute; top: .65rem; left: .65rem; border-radius: .2rem; background: #fff2d4; color: #674714; padding: .2rem .5rem; font-size: .65rem; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+	.product-info { padding: 1rem 1rem 1.05rem; }
+	.product-category { color: var(--link); font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; }
+	.product-info h3 { margin: .28rem 0 .32rem; font-family: var(--font-display); font-size: 1.1rem; line-height: 1.25; }
+	.product-info h3 a { color: var(--body); text-decoration: none; }
+	.product-info h3 a:hover { color: var(--link); }
+	.product-info p { display: -webkit-box; overflow: hidden; min-height: 2.8em; margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+	.product-meta { display: flex; align-items: center; justify-content: space-between; gap: .5rem; border-top: 1px solid var(--line); margin-top: .9rem; padding-top: .7rem; font-size: .8rem; font-weight: 750; }
+	.product-meta a { text-decoration: none; }
+</style>

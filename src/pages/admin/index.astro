@@ -1,0 +1,39 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { listAdminProducts, listCategories, listEnquiries } from '../../lib/db';
+import { getAdminEmail } from '../../lib/admin-auth';
+
+const email = await getAdminEmail(Astro.request);
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+let products = 0, drafts = 0, categories = 0, enquiries = 0;
+if (email) {
+	const [productRows, categoryRows, enquiryRows] = await Promise.all([listAdminProducts(), listCategories(undefined, true), listEnquiries()]);
+	products = productRows.length;
+	drafts = productRows.filter((product) => product.status === 'draft').length;
+	categories = categoryRows.length;
+	enquiries = enquiryRows.filter((item) => item.status === 'new').length;
+}
+---
+
+{email ? <AdminLayout title="Overview" active="overview" email={email}>
+	<div class="admin-page-heading"><div><p class="eyebrow">Workspace</p><h1>Overview</h1><p>Manage the catalogue and review incoming enquiries.</p></div><a class="btn btn-primary" href="/admin/products/new/">Add a product</a></div>
+	<div class="stat-grid"><div class="stat-card"><span>Products</span><strong>{products}</strong><small>{drafts} drafts</small></div><div class="stat-card"><span>Categories</span><strong>{categories}</strong><small>Available to organise listings</small></div><div class="stat-card"><span>New enquiries</span><strong>{enquiries}</strong><small>Review and update their status</small></div></div>
+	<div class="admin-panel overview-panel"><h2>Common tasks</h2><div class="task-links"><a href="/admin/products/new/">Create a product <span>→</span></a><a href="/admin/categories/">Manage categories <span>→</span></a><a href="/admin/enquiries/">Review enquiries <span>→</span></a><a href="/admin/settings/">Update business information <span>→</span></a></div></div>
+</AdminLayout> : <main class="admin-denied"><div class="denied-mark">SGRS</div><h1>Administrator access required.</h1><p>Sign in through the configured Cloudflare Access application, then return to this page.</p><a class="btn btn-outline" href="/">Return to the public site</a></main>}
+
+<style>
+	.stat-grid { display: grid; grid-template-columns: 1fr; gap: .8rem; margin-bottom: 1rem; }
+	.stat-card { display: grid; gap: .1rem; border: 1px solid var(--line); border-radius: .4rem; background: var(--page); padding: 1rem; }
+	.stat-card span { color: var(--muted); font-size: .78rem; font-weight: 750; }
+	.stat-card strong { font-family: var(--font-display); font-size: 2rem; line-height: 1.2; }
+	.stat-card small { color: var(--muted); font-size: .73rem; }
+	.overview-panel { margin-top: 1rem; }
+	.task-links { display: grid; grid-template-columns: 1fr; gap: .5rem; }
+	.task-links a { display: flex; justify-content: space-between; border: 1px solid var(--line); border-radius: .3rem; padding: .7rem .8rem; font-size: .88rem; font-weight: 700; text-decoration: none; }
+	.task-links a span { color: var(--link); }
+	.admin-denied { display: grid; min-height: 100vh; align-content: center; justify-items: start; gap: .4rem; padding: 2rem; }
+	.admin-denied h1 { font-family: var(--font-display); font-size: clamp(2rem,5vw,3rem); line-height: 1.1; }
+	.admin-denied p { max-width: 35rem; color: var(--muted); }
+	.denied-mark { color: var(--link); font-weight: 850; letter-spacing: .15em; }
+	@media (min-width: 40rem) { .stat-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } .task-links { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+</style>

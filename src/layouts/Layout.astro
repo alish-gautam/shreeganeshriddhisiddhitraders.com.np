@@ -1,23 +1,44 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { listCategories } from '../lib/db';
+import { DEMO_MODE, getSiteSettings, SITE_URL } from '../lib/site';
+
+interface Props {
+	title: string;
+	description: string;
+	canonical?: string;
+	noindex?: boolean;
+	structuredData?: Record<string, unknown> | Record<string, unknown>[];
+}
+const { title, description, canonical, noindex = false, structuredData } = Astro.props;
+const settings = await getSiteSettings();
+const categories = await listCategories();
+const canonicalUrl = new URL(canonical ?? Astro.url.pathname, SITE_URL).toString();
+const robots = DEMO_MODE || noindex ? 'noindex, nofollow, noarchive' : 'index, follow, max-image-preview:large';
+const structuredJson = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\u003c') : '';
+---
+
 <!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<meta name="theme-color" content="#122234" />
+		<meta name="robots" content={robots} />
+		<link rel="canonical" href={canonicalUrl} />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		{structuredData && <script type="application/ld+json" set:html={structuredJson} />}
 	</head>
 	<body>
+		<a class="skip-link" href="#main-content">Skip to content</a>
+		{DEMO_MODE && <div class="demo-bar"><div class="container-page"><strong>Client preview:</strong> sample catalogue content is for demonstration only and is not an offer for sale.</div></div>}
+		<Header categories={categories} settings={settings} />
 		<slot />
+		<Footer settings={settings} />
 	</body>
 </html>
-
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>

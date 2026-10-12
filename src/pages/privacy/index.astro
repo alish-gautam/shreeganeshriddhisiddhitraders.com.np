@@ -1,0 +1,22 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+---
+
+<Layout title="Privacy policy | Shree Ganesh Riddhi Siddhi Traders" description="How enquiry information is handled on the Shree Ganesh Riddhi Siddhi Traders website.">
+	<main id="main-content"><Breadcrumbs items={[{ label: 'Privacy policy' }]} /><article class="container-page legal-page"><p class="eyebrow">Website information</p><h1>Privacy policy</h1><p class="muted">Last updated: October 2026</p>
+		<h2>Information you submit</h2><p>The contact form asks for your name, email address, an optional phone number, and your message. If you enquire about a machine, the related listing is attached to the enquiry.</p>
+		<h2>How it is used</h2><p>The information is stored so Shree Ganesh Riddhi Siddhi Traders can review and respond to your enquiry. Do not include payment details, identity documents, or other sensitive information in the message.</p>
+		<h2>Storage and access</h2><p>Enquiry records are stored in the website’s Cloudflare database and are available to authorised administrators. Product images are stored separately in Cloudflare object storage. The website does not publish enquiry details.</p>
+		<h2>Cookies and preferences</h2><p>The site stores a colour-theme preference in your browser’s local storage. The preference is used only to remember the light or dark theme you selected.</p>
+		<h2>Your request</h2><p>To ask about your enquiry information or request its removal, use the contact page and provide enough detail for the business to identify the record.</p>
+		<h2>Updates</h2><p>This policy may be updated when the website’s data handling changes. Check this page for the current version.</p>
+	</article></main>
+</Layout>
+
+<style>
+	.legal-page { max-width: 52rem; padding-block: 1rem 5rem; }
+	.legal-page h1 { margin: .4rem 0 .6rem; font-family: var(--font-display); font-size: clamp(2.7rem,6vw,4.2rem); letter-spacing: -.055em; }
+	.legal-page h2 { margin: 1.8rem 0 .35rem; font-family: var(--font-display); font-size: 1.25rem; }
+	.legal-page p { max-width: 48rem; }
+</style>

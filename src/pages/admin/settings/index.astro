@@ -1,0 +1,27 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getSiteSettings } from '../../../lib/site';
+import { getAdminEmail } from '../../../lib/admin-auth';
+
+const email = await getAdminEmail(Astro.request);
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+const settings = email ? await getSiteSettings() : null;
+const saved = Astro.url.searchParams.has('saved');
+const error = Astro.url.searchParams.get('error');
+---
+
+{email && settings ? <AdminLayout title="Site settings" active="settings" email={email}>
+	<div class="admin-page-heading"><div><p class="eyebrow">Business profile</p><h1>Site settings</h1><p>Contact details are hidden from the public site while their fields are blank.</p></div></div>
+	{saved && <p class="admin-callout" role="status">Business information was saved.</p>}
+	{error === 'invalid' && <p class="admin-alert" role="alert">The settings could not be saved. Check the business name, email address, and required description.</p>}
+	{error === 'save' && <p class="admin-alert" role="alert">The settings could not be saved. Try again; if it continues, contact the site administrator.</p>}
+	<div class="admin-panel settings-panel"><form class="admin-form" action="/api/admin/settings/" method="post">
+		<div class="field"><label for="business_name">Business name</label><input class="control" id="business_name" name="business_name" required maxlength="120" value={settings.businessName} /></div>
+		<div class="field"><label for="address">Business address</label><textarea class="control" id="address" name="address" rows="3" maxlength="240">{settings.address}</textarea><small class="muted">The supplied address is approximate. Verify it with the business before publication.</small></div>
+		<div class="form-grid two-col"><div class="field"><label for="phone">Telephone</label><input class="control" id="phone" name="phone" type="tel" maxlength="50" value={settings.phone} /><small class="muted">Leave blank if not confirmed.</small></div><div class="field"><label for="email">Business email</label><input class="control" id="email" name="email" type="email" maxlength="254" value={settings.email} /><small class="muted">Leave blank if not confirmed.</small></div></div>
+		<div class="field"><label for="announcement">Announcement bar</label><input class="control" id="announcement" name="announcement" maxlength="180" value={settings.announcement} /><small class="muted">Optional. Keep empty if there is no current announcement.</small></div>
+		<div class="field"><label for="about">About text</label><textarea class="control" id="about" name="about" rows="5" maxlength="1200" required>{settings.about}</textarea><small class="muted">Use information confirmed by the business. Avoid unverified claims.</small></div>
+		<div class="admin-callout">The public preview is controlled by <code>PUBLIC_DEMO_MODE</code> at build time. Database settings do not change whether the site is indexed.</div>
+		<button class="btn btn-primary" type="submit">Save site settings</button>
+	</form></div>
+</AdminLayout> : <main class="admin-denied"><h1>Administrator access required.</h1><p>Use the configured Cloudflare Access application to continue.</p><a class="btn btn-outline" href="/">Return to the public site</a></main>}

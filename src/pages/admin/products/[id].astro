@@ -1,0 +1,62 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import ProductEditor from '../../../components/ProductEditor.astro';
+import { getProductById, listCategories } from '../../../lib/db';
+import { env } from 'cloudflare:workers';
+import { getAdminEmail } from '../../../lib/admin-auth';
+
+const email = await getAdminEmail(Astro.request);
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+const product = email ? await getProductById(Astro.params.id ?? '', env.DB) : null;
+const categories = email ? await listCategories(env.DB, true) : [];
+if (email && !product) Astro.response.status = 404;
+const errorKey = Astro.url.searchParams.get('error');
+const error = errorKey === 'duplicate' ? 'A product with this name already exists. Update its name and try again.'
+	: errorKey === 'category' ? 'The selected category is unavailable.'
+	: errorKey === 'invalid' ? 'The product was not saved. Check the required fields and try again.'
+	: errorKey === 'save' ? 'The requested change could not be saved. Try again; if it continues, contact the site administrator.'
+	: errorKey === 'upload' ? 'The image could not be uploaded. Use a JPEG, PNG, or WebP image under 5 MB and add alt text.'
+	: errorKey === 'cleanup' ? 'An image cleanup failed. A file may remain unlinked in private storage; contact the site administrator to clean it up.'
+	: null;
+const saved = Astro.url.searchParams.has('saved');
+const uploaded = Astro.url.searchParams.has('uploaded');
+---
+
+{email ? <AdminLayout title={product ? `Edit ${product.name}` : 'Product not found'} active="products" email={email}>
+	{product ? <>
+		<div class="admin-page-heading"><div><p class="eyebrow">Catalogue</p><h1>Edit product</h1><p>Update product details, publication status, and images.</p></div><div class="admin-toolbar">{product.status === 'published' && <a class="btn btn-outline" href={`/machines/${product.slug}/`}>View public page</a>}<a class="btn btn-outline" href={`/admin/products/${product.id}/preview/`}>Preview</a></div></div>
+		{saved && <p class="admin-callout" role="status">Product changes were saved.</p>}{uploaded && <p class="admin-callout" role="status">Image uploaded and added to the gallery.</p>}
+		<section class="admin-panel"><ProductEditor categories={categories} product={product} error={error} /></section>
+		<section class="admin-panel image-panel"><h2>Product images</h2><p class="muted">Use JPEG, PNG, or WebP files up to 5 MB. Add clear alt text. SVG uploads are disabled.</p>
+			<form class="upload-form" action={`/api/admin/products/${product.id}/images/`} method="post" enctype="multipart/form-data"><div class="field"><label for="image-file">Image file</label><input class="control file-input" id="image-file" type="file" name="file" accept="image/jpeg,image/png,image/webp" required /></div><div class="field"><label for="image-alt">Alternative text</label><input class="control" id="image-alt" name="alt_text" maxlength="220" required placeholder="Describe the product view" /></div><button class="btn btn-primary" type="submit">Upload image</button></form>
+			{product.images.length ? <div class="image-list">{product.images.map((image, index) => <article class="image-item"><img src={`/api/admin/media/${image.id}/`} alt={image.alt_text} width={220} height={165} /><div class="image-details"><strong>{image.is_primary === 1 ? 'Primary image' : `Image ${index + 1}`}</strong><span>{image.alt_text}</span></div><form class="alt-form" action={`/api/admin/products/${product.id}/images/`} method="post"><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="intent" value="alt" /><label for={`alt-${image.id}`}>Alt text</label><input class="control" id={`alt-${image.id}`} name="alt_text" value={image.alt_text} maxlength="220" required /><button class="btn btn-outline" type="submit">Save alt text</button></form><div class="image-actions">
+				<form action={`/api/admin/products/${product.id}/images/`} method="post"><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="intent" value="primary" /><button class="btn btn-outline" type="submit" aria-label={`Make image ${index + 1} primary`}>{image.is_primary === 1 ? 'Primary' : 'Make primary'}</button></form>
+				<form action={`/api/admin/products/${product.id}/images/`} method="post"><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="intent" value="up" /><button class="btn btn-outline" type="submit" disabled={index === 0} aria-label={`Move image ${index + 1} earlier`}>Move up</button></form>
+				<form action={`/api/admin/products/${product.id}/images/`} method="post"><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="intent" value="down" /><button class="btn btn-outline" type="submit" disabled={index === product.images.length - 1} aria-label={`Move image ${index + 1} later`}>Move down</button></form>
+				<form action={`/api/admin/products/${product.id}/images/`} method="post"><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="intent" value="delete" /><button class="btn btn-outline danger-button" type="submit">Remove</button></form>
+			</div></article>)}</div> : <div class="admin-empty">No product images have been uploaded.</div>}
+		</section>
+		<section class="admin-panel delete-panel"><h2>Remove product</h2><p class="muted">Deleting a product removes its image records and disconnects any enquiries from the listing.</p><form action={`/api/admin/products/${product.id}/`} method="post"><input type="hidden" name="intent" value="delete" /><button class="btn danger-button" type="submit">Delete this product</button></form></section>
+	</> : <div class="admin-empty">Product not found. <a href="/admin/products/">Return to products</a></div>}
+</AdminLayout> : <main class="admin-denied"><h1>Administrator access required.</h1><p>Use the configured Cloudflare Access application to continue.</p><a class="btn btn-outline" href="/">Return to public site</a></main>}
+
+<style>
+	.image-panel, .delete-panel { margin-top: 1rem; }
+	.image-panel > p { margin: -.4rem 0 1rem; font-size: .82rem; }
+	.upload-form { display: grid; gap: .75rem; align-items: end; margin-bottom: 1.2rem; }
+	.file-input { min-height: auto; padding: .55rem; }
+	.image-list { display: grid; gap: .65rem; }
+	.image-item { display: grid; grid-template-columns: 5rem minmax(0,1fr); gap: .7rem; border: 1px solid var(--line); border-radius: .35rem; padding: .55rem; }
+	.image-item > img { width: 5rem; aspect-ratio: 4/3; background: var(--surface); object-fit: contain; }
+	.image-details { display: grid; align-content: center; min-width: 0; }
+	.image-details span { overflow-wrap: anywhere; color: var(--muted); font-size: .74rem; }
+	.alt-form { display: grid; grid-column: 1/-1; gap: .3rem; }
+	.alt-form label { color: var(--muted); font-size: .72rem; font-weight: 700; }
+	.alt-form .btn { width: fit-content; min-height: 2.25rem; padding: .4rem .6rem; font-size: .75rem; }
+	.image-actions { display: flex; grid-column: 1/-1; flex-wrap: wrap; gap: .35rem; }
+	.image-actions .btn { min-height: 2.35rem; padding: .45rem .6rem; font-size: .76rem; }
+	.danger-button { border: 1px solid #b6453a; background: transparent; color: #a4342a; }
+	.danger-button:hover { background: #fff0ed; }
+	.delete-panel { border-color: #edc9c5; }
+	@media (min-width: 50rem) { .upload-form { grid-template-columns: 1.2fr 1fr auto; } .image-item { grid-template-columns: 6rem minmax(0,1fr) minmax(14rem,.8fr); align-items: center; } .image-item > img { width: 6rem; } .alt-form { grid-column: auto; } .image-actions { grid-column: 1/-1; justify-content: end; } }
+</style>

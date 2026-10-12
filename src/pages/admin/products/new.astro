@@ -1,0 +1,22 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import ProductEditor from '../../../components/ProductEditor.astro';
+import { listCategories } from '../../../lib/db';
+import { env } from 'cloudflare:workers';
+import { getAdminEmail } from '../../../lib/admin-auth';
+
+const email = await getAdminEmail(Astro.request);
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+const categories = email ? await listCategories(env.DB, true) : [];
+const errorKey = Astro.url.searchParams.get('error');
+const error = errorKey === 'duplicate' ? 'A product with this name already exists. Update its name and try again.'
+	: errorKey === 'category' ? 'The selected category is unavailable.'
+	: errorKey === 'invalid' ? 'The product was not saved. Check the required fields and try again.'
+	: errorKey === 'save' ? 'The product could not be saved. Try again; if it continues, contact the site administrator.'
+	: null;
+---
+
+{email ? <AdminLayout title="Add product" active="products" email={email}>
+	<div class="admin-page-heading"><div><p class="eyebrow">Catalogue</p><h1>Add a product</h1><p>Start with verified product information. You can add images after creating the product.</p></div></div>
+	<section class="admin-panel"><ProductEditor categories={categories} error={error} /></section>
+</AdminLayout> : <main class="admin-denied"><h1>Administrator access required.</h1><p>Use the configured Cloudflare Access application to continue.</p><a class="btn btn-outline" href="/">Return to public site</a></main>}

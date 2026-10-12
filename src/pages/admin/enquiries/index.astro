@@ -1,0 +1,43 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { listEnquiries } from '../../../lib/db';
+import { getAdminEmail } from '../../../lib/admin-auth';
+
+const email = await getAdminEmail(Astro.request);
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+const enquiries = email ? await listEnquiries() : [];
+const saved = Astro.url.searchParams.has('saved');
+const error = Astro.url.searchParams.get('error');
+---
+
+{email ? <AdminLayout title="Enquiries" active="enquiries" email={email}>
+	<div class="admin-page-heading"><div><p class="eyebrow">Customer messages</p><h1>Enquiries</h1><p>Review submitted messages and record their status.</p></div><span class="status-label">{enquiries.filter((item) => item.status === 'new').length} new</span></div>
+	{saved && <p class="admin-callout" role="status">The enquiry record was updated.</p>}
+	{error === 'invalid' && <p class="admin-alert" role="alert">The enquiry change was not saved. Choose a valid status and try again.</p>}
+	{error === 'save' && <p class="admin-alert" role="alert">The enquiry could not be updated. Try again; if it continues, contact the site administrator.</p>}
+	{enquiries.length ? <div class="enquiry-list">{enquiries.map((item) => <article class="admin-panel enquiry-card">
+		<header><div><h2>{item.name}</h2><time datetime={new Date(`${item.created_at.replace(' ', 'T')}Z`).toISOString()}>{new Date(`${item.created_at.replace(' ', 'T')}Z`).toLocaleString('en-NP')}</time></div><span class:list={{ 'status-label': true, 'new-status': item.status === 'new' }}>{item.status}</span></header>
+		<div class="enquiry-contact"><a href={`mailto:${item.email}`}>{item.email}</a>{item.phone && <a href={`tel:${item.phone.replace(/[^+\d]/g, '')}`}>{item.phone}</a>}</div>
+		{item.product_name && <p class="enquiry-product">Machine: <strong>{item.product_name}</strong></p>}
+		<p class="enquiry-message">{item.message}</p>
+		<div class="enquiry-actions"><form action={`/api/admin/enquiries/${item.id}/`} method="post"><label for={`status-${item.id}`}>Status</label><select class="control" id={`status-${item.id}`} name="status"><option value="new" selected={item.status === 'new'}>New</option><option value="contacted" selected={item.status === 'contacted'}>Contacted</option><option value="closed" selected={item.status === 'closed'}>Closed</option></select><button class="btn btn-outline" type="submit">Save status</button></form><form action={`/api/admin/enquiries/${item.id}/`} method="post"><input type="hidden" name="intent" value="delete" /><button class="btn danger-button" type="submit">Delete enquiry</button></form></div>
+	</article>)}</div> : <div class="admin-empty">No enquiries have been received yet.</div>}
+</AdminLayout> : <main class="admin-denied"><h1>Administrator access required.</h1><p>Use the configured Cloudflare Access application to continue.</p><a class="btn btn-outline" href="/">Return to the public site</a></main>}
+
+<style>
+	.enquiry-list { display: grid; gap: .8rem; }
+	.enquiry-card { display: grid; gap: .7rem; }
+	.enquiry-card header { display: flex; align-items: start; justify-content: space-between; gap: .7rem; border-bottom: 1px solid var(--line); padding-bottom: .6rem; }
+	.enquiry-card header h2 { margin: 0; font-size: 1.05rem; }
+	.enquiry-card time { color: var(--muted); font-size: .72rem; }
+	.new-status { background: #fff2d4; color: #624714; }
+	.enquiry-contact { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-size: .83rem; }
+	.enquiry-product { margin: 0; color: var(--muted); font-size: .82rem; }
+	.enquiry-message { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+	.enquiry-actions { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: .6rem; border-top: 1px solid var(--line); padding-top: .7rem; }
+	.enquiry-actions form:first-child { display: flex; flex-wrap: wrap; align-items: end; gap: .4rem; }
+	.enquiry-actions label { width: 100%; color: var(--muted); font-size: .72rem; }
+	.enquiry-actions select { width: auto; min-width: 8rem; min-height: 2.55rem; }
+	.enquiry-actions .btn { min-height: 2.55rem; padding: .5rem .7rem; font-size: .8rem; }
+	.danger-button { border: 1px solid #b6453a; background: transparent; color: #a4342a; }
+</style>

@@ -1,0 +1,38 @@
+---
+import type { SiteSettings } from '../lib/site';
+interface Props { settings: SiteSettings }
+const { settings } = Astro.props;
+---
+
+<footer class="site-footer">
+	<div class="container-page footer-main">
+		<div class="footer-brand">
+			<a class="footer-name" href="/">{settings.businessName}</a>
+			<p>Machinery information and enquiries for businesses in Nepal.</p>
+			{settings.address && <address>{settings.address}</address>}
+			<div class="footer-contact">
+				{settings.phone && <a href={`tel:${settings.phone.replace(/[^+\d]/g, '')}`}>{settings.phone}</a>}
+				{settings.email && <a href={`mailto:${settings.email}`}>{settings.email}</a>}
+			</div>
+		</div>
+		<div class="footer-column"><h2>Explore</h2><a href="/machines/">Browse machinery</a><a href="/services/">How enquiries work</a><a href="/guides/">Buying guides</a><a href="/about/">About the business</a><a href="/contact/">Contact</a></div>
+		<div class="footer-column"><h2>Information</h2><a href="/privacy/">Privacy policy</a><a href="/terms/">Terms of use</a><a href="/admin/">Administrator</a></div>
+	</div>
+	<div class="container-page footer-bottom"><span>© {new Date().getFullYear()} {settings.businessName}</span><span>Biratnagar, Nepal</span></div>
+</footer>
+
+<style>
+	.site-footer { background: var(--navy); color: #edf3f6; }
+	.footer-main { display: grid; grid-template-columns: 1fr; gap: 2.4rem; padding-block: 3.3rem; }
+	.footer-brand { max-width: 28rem; }
+	.footer-name { color: #fff; font-family: var(--font-display); font-size: 1.15rem; font-weight: 750; text-decoration: none; }
+	.footer-brand p, .footer-brand address { color: #c1cbd2; font-size: .88rem; font-style: normal; }
+	.footer-contact { display: flex; flex-wrap: wrap; gap: .45rem 1rem; }
+	.footer-contact a { color: #f4c76f; font-size: .85rem; }
+	.footer-column { display: grid; align-content: start; gap: .48rem; }
+	.footer-column h2 { margin: 0 0 .3rem; color: #fff; font-size: .8rem; letter-spacing: .09em; text-transform: uppercase; }
+	.footer-column a { width: fit-content; color: #c1cbd2; font-size: .88rem; text-decoration: none; }
+	.footer-column a:hover { color: #fff; text-decoration: underline; }
+	.footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem 1rem; border-top: 1px solid #394858; padding-block: 1rem; color: #bdc8d0; font-size: .78rem; }
+	@media (min-width: 48rem) { .footer-main { grid-template-columns: 2fr 1fr 1fr; } }
+</style>

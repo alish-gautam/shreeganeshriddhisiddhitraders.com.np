@@ -1,0 +1,20 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+---
+
+<Layout title="Terms of use | Shree Ganesh Riddhi Siddhi Traders" description="Terms for using the Shree Ganesh Riddhi Siddhi Traders online machinery catalogue.">
+	<main id="main-content"><Breadcrumbs items={[{ label: 'Terms of use' }]} /><article class="container-page legal-page"><p class="eyebrow">Website information</p><h1>Terms of use</h1><p class="muted">Last updated: October 2026</p>
+		<h2>Catalogue information</h2><p>Listings are provided to help visitors review machinery and contact the business. Information may change. Confirm specifications, price, availability, inclusions, and arrangements directly with the business before making a purchase decision.</p>
+		<h2>Enquiries</h2><p>Submitting a form sends your message to the business for review. It does not create an order, reserve equipment, or establish a supply agreement.</p>
+		<h2>Website material</h2><p>Website text and original visual design are provided for general information. Sample records and placeholder illustrations are demonstrations and do not represent products for sale.</p>
+		<h2>Changes</h2><p>The catalogue and these terms may be updated. Continued use of the site after an update means you are using the current version.</p>
+	</article></main>
+</Layout>
+
+<style>
+	.legal-page { max-width: 52rem; padding-block: 1rem 5rem; }
+	.legal-page h1 { margin: .4rem 0 .6rem; font-family: var(--font-display); font-size: clamp(2.7rem,6vw,4.2rem); letter-spacing: -.055em; }
+	.legal-page h2 { margin: 1.8rem 0 .35rem; font-family: var(--font-display); font-size: 1.25rem; }
+	.legal-page p { max-width: 48rem; }
+</style>

@@ -1,0 +1,41 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "shreeganesh-riddhisiddhi-traders",
+	"main": "@astrojs/cloudflare/entrypoints/server",
+	"compatibility_date": "2026-10-10",
+	"compatibility_flags": ["nodejs_compat"],
+	"workers_dev": false,
+	"assets": {
+		"directory": "./dist/client",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "sg-rs-catalog",
+			"database_id": "00000000000000000000000000000000",
+			"migrations_dir": "migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "PRODUCT_IMAGES",
+			"bucket_name": "sg-rs-product-images"
+		}
+	],
+	"env": {
+		"preview": {
+			"workers_dev": false,
+			"assets": { "directory": "./dist/client", "binding": "ASSETS" },
+			"d1_databases": [{ "binding": "DB", "database_name": "sg-rs-catalog-preview", "database_id": "00000000000000000000000000000000", "migrations_dir": "migrations" }],
+			"r2_buckets": [{ "binding": "PRODUCT_IMAGES", "bucket_name": "sg-rs-product-images-preview" }]
+		},
+		"production": {
+			"workers_dev": false,
+			"assets": { "directory": "./dist/client", "binding": "ASSETS" },
+			"d1_databases": [{ "binding": "DB", "database_name": "sg-rs-catalog-production", "database_id": "00000000000000000000000000000000", "migrations_dir": "migrations" }],
+			"r2_buckets": [{ "binding": "PRODUCT_IMAGES", "bucket_name": "sg-rs-product-images-production" }]
+		}
+	},
+	"observability": { "enabled": true }
+}

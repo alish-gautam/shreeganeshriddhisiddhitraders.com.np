@@ -1,0 +1,34 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+---
+
+<Layout title="How to compare machinery | Buying guide" description="A practical checklist for matching a machine to your process, reviewing specifications, and confirming the terms that matter before buying.">
+	<main id="main-content">
+		<Breadcrumbs items={[{ label: 'Guides', href: '/guides/' }, { label: 'How to compare machinery' }]} />
+		<article class="container-page article-page">
+			<p class="eyebrow">Buying checklist · 5 minute read</p><h1>How to compare machinery for your business.</h1>
+			<p class="article-lede">A useful comparison starts with the work the machine needs to do. Gather the same information for each option, then check that the numbers and terms match your actual process.</p>
+			<div class="article-content">
+				<h2>1. Describe the job clearly</h2><p>Write down the material or product, the steps involved, and the result you need. Note the expected volume and how often the machine will run. If your process changes during the day, describe that too.</p>
+				<h2>2. Compare the same specifications</h2><p>For each option, ask for the capacity and operating conditions that apply to your material and product. Check units carefully. A capacity figure may depend on the input, product size, or operating setup, so ask how it was measured.</p>
+				<h2>3. Check the full working requirements</h2><p>Confirm the machine’s footprint, power supply, operator requirements, and any materials or accessories needed to run it. Ask what is included and what would need to be arranged separately.</p>
+				<h2>4. Ask about price and availability</h2><p>Confirm whether a quoted amount includes transport, taxes, installation, or other charges. Ask whether the listed machine is currently available and how long a quote remains valid.</p>
+				<h2>5. Write down the agreed details</h2><p>Keep the final specifications, inclusions, price, timing, and any support commitments together in writing. If something matters to your decision, make sure it is recorded clearly before placing an order.</p>
+				<div class="guide-callout"><strong>Use the catalogue as a starting point.</strong><p>Product details and arrangements should be confirmed directly with the business before you make a purchasing decision.</p><a href="/machines/">Browse machinery →</a></div>
+			</div>
+		</article>
+	</main>
+</Layout>
+
+<style>
+	.article-page { max-width: 55rem; padding-block: 1rem 5rem; }
+	.article-page h1 { margin: .5rem 0 1rem; font-family: var(--font-display); font-size: clamp(2.5rem,6vw,4.5rem); letter-spacing: -.06em; line-height: 1.04; }
+	.article-lede { color: var(--muted); font-size: 1.15rem; line-height: 1.75; }
+	.article-content { margin-top: 2.2rem; }
+	.article-content h2 { margin: 1.8rem 0 .4rem; font-family: var(--font-display); font-size: 1.32rem; }
+	.article-content p { color: var(--muted); }
+	.guide-callout { border-left: 3px solid var(--accent); background: var(--surface); margin-top: 2rem; padding: 1rem 1.2rem; }
+	.guide-callout p { margin: .25rem 0 .5rem; }
+	.guide-callout a { font-weight: 750; }
+</style>

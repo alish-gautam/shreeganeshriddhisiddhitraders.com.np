@@ -1,0 +1,60 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getCategory, listCategories, listProducts } from '../../lib/db';
+import { parseCatalogQuery } from '../../lib/validation';
+
+const slug = Astro.params.slug ?? '';
+const category = await getCategory(slug);
+if (!category) Astro.response.status = 404;
+const filters = parseCatalogQuery(Astro.url.searchParams);
+const [catalog, categories] = category ? await Promise.all([
+	listProducts({ ...filters, category: slug }), listCategories(),
+]) : [{ items: [], count: 0, page: 1, pageSize: 12 }, []];
+const title = category ? `${category.name} | Machinery catalogue` : 'Category not found';
+const description = category?.description || `Browse ${category?.name ?? 'machine'} listings from Shree Ganesh Riddhi Siddhi Traders in Biratnagar, Nepal.`;
+const pageCount = Math.max(1, Math.ceil(catalog.count / catalog.pageSize));
+const noindex = !category || catalog.count === 0 || Boolean(filters.query || filters.sort !== 'newest' || filters.page > 1);
+function pageUrl(page: number) { const query = new URLSearchParams(Astro.url.searchParams); query.set('page', String(page)); return `/categories/${slug}/?${query.toString()}`; }
+---
+
+<Layout title={title} description={description} noindex={noindex}>
+	<main id="main-content">
+		<Breadcrumbs items={[{ label: 'Machinery', href: '/machines/' }, { label: category?.name ?? 'Category not found' }]} />
+		{category ? <>
+			<section class="container-page category-heading"><p class="eyebrow">Machine category</p><h1>{category.name}</h1><p>{category.description || `Browse published ${category.name.toLowerCase()} listings and check the details available for each machine.`}</p></section>
+			<section class="container-page category-content">
+				<div class="category-tools"><span><strong>{catalog.count}</strong> {catalog.count === 1 ? 'machine' : 'machines'}</span><form method="get" action={`/categories/${slug}/`}><label for="q">Search in this category</label><input id="q" class="control" type="search" name="q" value={filters.query} maxlength="80" placeholder="Search listings" /><button class="btn btn-ink" type="submit">Search</button></form></div>
+				{catalog.items.length > 0 ? <div class="product-grid">{catalog.items.map((product) => <ProductCard product={product} />)}</div> : <div class="empty-results card"><h2>No listings in this category yet.</h2><p>Check the full catalogue or contact the business with your requirements.</p><a class="btn btn-outline" href="/machines/">View all machinery</a></div>}
+				{pageCount > 1 && <nav class="pagination" aria-label="Category pages">{filters.page > 1 && <a class="btn btn-outline" href={pageUrl(filters.page - 1)}>← Previous</a>}<span>Page {filters.page} of {pageCount}</span>{filters.page < pageCount && <a class="btn btn-outline" href={pageUrl(filters.page + 1)}>Next →</a>}</nav>}
+				{categories.filter((item) => item.slug !== slug).length > 0 && <nav class="related-categories" aria-label="Other categories"><strong>Explore other categories</strong>{categories.filter((item) => item.slug !== slug).slice(0, 6).map((item) => <a href={`/categories/${item.slug}/`}>{item.name}</a>)}</nav>}
+			</section>
+		</> : <section class="container-page not-found"><p class="eyebrow">Page not found</p><h1>We could not find that category.</h1><p>Choose a category from the catalogue.</p><a class="btn btn-primary" href="/machines/">Browse machinery</a></section>}
+	</main>
+</Layout>
+
+<style>
+	.category-heading { border-bottom: 1px solid var(--line); padding-block: 1rem 2.3rem; }
+	.category-heading h1 { margin: .3rem 0 .55rem; font-family: var(--font-display); font-size: clamp(2.3rem,5vw,3.8rem); letter-spacing: -.055em; line-height: 1.08; }
+	.category-heading p:last-child { max-width: 45rem; margin: 0; color: var(--muted); }
+	.category-content { padding-block: 1.5rem 5rem; }
+	.category-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.3rem; color: var(--muted); font-size: .84rem; }
+	.category-tools form { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+	.category-tools label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+	.category-tools .control { width: min(17rem, 65vw); }
+	.category-content .product-grid { grid-template-columns: 1fr; }
+	.empty-results { display: grid; justify-items: start; gap: .5rem; padding: 1.5rem; }
+	.empty-results h2, .empty-results p { margin: 0; }
+	.empty-results p { color: var(--muted); }
+	.empty-results .btn { margin-top: .5rem; }
+	.pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .9rem; margin-top: 2rem; }
+	.pagination > span { color: var(--muted); font-size: .82rem; }
+	.related-categories { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; border-top: 1px solid var(--line); margin-top: 3rem; padding-top: 1rem; }
+	.related-categories strong { margin-right: .3rem; font-size: .83rem; }
+	.related-categories a { font-size: .82rem; }
+	.not-found { min-height: 25rem; padding-block: 5rem; }
+	.not-found h1 { max-width: 42rem; font-family: var(--font-display); font-size: clamp(2rem,5vw,3.2rem); line-height: 1.1; }
+	@media (min-width: 40rem) { .category-content .product-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+	@media (min-width: 64rem) { .category-content .product-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+</style>

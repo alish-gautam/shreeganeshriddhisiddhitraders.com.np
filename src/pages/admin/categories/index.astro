@@ -1,0 +1,37 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { listCategories } from '../../../lib/db';
+import { getAdminEmail } from '../../../lib/admin-auth';
+
+const email = await getAdminEmail(Astro.request);
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+const categories = email ? await listCategories(undefined, true) : [];
+const saved = Astro.url.searchParams.has('saved');
+const error = Astro.url.searchParams.get('error');
+---
+
+{email ? <AdminLayout title="Categories" active="categories" email={email}>
+	<div class="admin-page-heading"><div><p class="eyebrow">Catalogue structure</p><h1>Categories</h1><p>Categories with published products appear in the public catalogue.</p></div></div>
+	{saved && <p class="admin-callout" role="status">Category changes were saved.</p>}
+	{error === 'used' && <p class="admin-alert" role="alert">This category contains products. Move or delete those products before removing the category.</p>}
+	{error === 'invalid' && <p class="admin-alert" role="alert">The category could not be saved. Check its name and try again.</p>}
+	{error === 'save' && <p class="admin-alert" role="alert">The category could not be saved. Try again; if it continues, contact the site administrator.</p>}
+	<section class="admin-panel new-category"><h2>Add a category</h2><form class="admin-form" action="/api/admin/categories/" method="post"><input type="hidden" name="intent" value="save" /><div class="form-grid two-col"><div class="field"><label for="new-name">Category name</label><input class="control" id="new-name" name="name" required maxlength="80" /></div><div class="field"><label for="new-description">Introduction (optional)</label><input class="control" id="new-description" name="description" maxlength="500" /></div></div><button class="btn btn-primary" type="submit">Add category</button></form></section>
+	<section class="category-admin-list" aria-label="Existing categories">{categories.length ? categories.map((category) => <article class="admin-panel category-admin-item">
+		<form class="admin-form" action="/api/admin/categories/" method="post"><input type="hidden" name="intent" value="save" /><input type="hidden" name="id" value={category.id} /><div class="category-meta"><strong>{category.name}</strong><span>{category.product_count ?? 0} published {category.product_count === 1 ? 'product' : 'products'} · /categories/{category.slug}/</span></div><div class="form-grid two-col"><div class="field"><label for={`name-${category.id}`}>Name</label><input class="control" id={`name-${category.id}`} name="name" value={category.name} required maxlength="80" /></div><div class="field"><label for={`desc-${category.id}`}>Introduction</label><input class="control" id={`desc-${category.id}`} name="description" value={category.description} maxlength="500" /></div></div><div class="admin-actions"><button class="btn btn-outline" type="submit">Save category</button></div></form>
+		<form class="delete-category" action="/api/admin/categories/" method="post"><input type="hidden" name="intent" value="delete" /><input type="hidden" name="id" value={category.id} /><button class="btn danger-button" type="submit">Delete</button></form>
+	</article>) : <div class="admin-empty">No categories have been created.</div>}</section>
+</AdminLayout> : <main class="admin-denied"><h1>Administrator access required.</h1><p>Use the configured Cloudflare Access application to continue.</p><a class="btn btn-outline" href="/">Return to public site</a></main>}
+
+<style>
+	.admin-callout, .admin-alert { margin-bottom: 1rem; }
+	.new-category { margin-bottom: 1rem; }
+	.category-admin-list { display: grid; gap: .7rem; }
+	.category-admin-item { display: grid; gap: .7rem; }
+	.category-admin-item .admin-form { gap: .7rem; }
+	.category-meta { display: grid; }
+	.category-meta span { color: var(--muted); font-size: .74rem; overflow-wrap: anywhere; }
+	.delete-category { display: flex; justify-content: end; border-top: 1px solid var(--line); padding-top: .6rem; }
+	.danger-button { border: 1px solid #b6453a; background: transparent; color: #a4342a; }
+	.danger-button:hover { background: #fff0ed; }
+</style>

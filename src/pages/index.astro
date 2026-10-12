@@ -1,11 +1,148 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { getFeaturedProducts, listCategories } from '../lib/db';
+import { getSiteSettings } from '../lib/site';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const categories = await listCategories();
+const featured = await getFeaturedProducts(4);
+const settings = await getSiteSettings();
+const title = `${settings.businessName} | Machinery for business`;
+const description = 'Browse machinery listings from Shree Ganesh Riddhi Siddhi Traders in Biratnagar, Nepal. Ask the business about confirmed product details, availability, and pricing.';
 ---
 
-<Layout>
-	<Welcome />
+<Layout title={title} description={description} structuredData={{
+	'@context': 'https://schema.org', '@type': 'Organization', name: settings.businessName,
+	url: 'https://shreeganeshriddhisiddhitraders.com.np/',
+}}>
+	<main id="main-content">
+		<section class="hero">
+			<div class="hero-grid container-page">
+				<div class="hero-copy">
+					<p class="eyebrow">Machinery trading · Biratnagar, Nepal</p>
+					<h1>Machinery for<br /><span>the work ahead.</span></h1>
+					<p class="hero-lede">Explore machine listings for your business. Share what you need, then confirm product details, availability, and pricing directly with the team.</p>
+					<div class="hero-actions"><a class="btn btn-primary" href="/machines/">Browse machinery <span aria-hidden="true">→</span></a><a class="btn btn-light" href="/contact/">Request a quote</a></div>
+					<div class="hero-note"><span class="note-rule"></span><span>Product information is reviewed with the business before publication.</span></div>
+				</div>
+				<div class="hero-visual" aria-hidden="true">
+					<div class="visual-topline"><span>Equipment &amp; industry</span><span>EST. CATALOGUE · 01</span></div>
+					<div class="visual-grid"></div>
+					<svg class="hero-machine" viewBox="0 0 520 390" fill="none"><path d="M83 303h356M115 303V132h290v171M153 132l34-54h144l36 54M153 303v-94h214v94M185 209v64m73-64v64m73-64v64M214 78V44h93v34m-63 0V24h32v20" stroke="currentColor" stroke-width="7" stroke-linecap="square" stroke-linejoin="round"/><path d="M63 328h394" stroke="#efa833" stroke-width="8"/><circle cx="405" cy="114" r="32" stroke="#efa833" stroke-width="5"/><path d="M405 92v44m-22-22h44" stroke="#efa833" stroke-width="4"/></svg>
+					<div class="visual-caption"><strong>Find equipment</strong><span>Compare details. Ask directly.</span></div>
+					<span class="visual-index">01 — 04</span>
+				</div>
+			</div>
+			<div class="hero-baseline"><div class="container-page"><span>Shree Ganesh Riddhi Siddhi Traders</span><span>Biratnagar · Koshi Province · Nepal</span></div></div>
+		</section>
+
+		<section class="section-space category-section">
+			<div class="container-page">
+				<div class="section-intro"><div><p class="eyebrow">Start with a category</p><h2 class="section-heading">Find the right place to begin.</h2><p class="muted">Browse the groups currently represented in the catalogue.</p></div><a class="text-link" href="/machines/">View all machinery <span aria-hidden="true">→</span></a></div>
+				{categories.length > 0 ? <div class="category-grid">
+					{categories.map((category, index) => <a class="category-tile" href={`/categories/${category.slug}/`}>
+						<span class="category-number">{String(index + 1).padStart(2, '0')}</span>
+						<span class="category-copy"><strong>{category.name}</strong><small>{category.product_count} {category.product_count === 1 ? 'listing' : 'listings'}</small></span>
+						<span class="category-arrow" aria-hidden="true">↗</span>
+					</a>)}
+				</div> : <div class="empty-category card"><strong>The catalogue is being prepared.</strong><span>Contact the business to discuss the machinery you are looking for.</span><a href="/contact/">Make an enquiry →</a></div>}
+			</div>
+		</section>
+
+		{featured.length > 0 && <section class="section-space featured-section">
+			<div class="container-page">
+				<div class="section-intro"><div><p class="eyebrow">Selected listings</p><h2 class="section-heading">Machines to explore.</h2><p class="muted">See the product information available, then ask about anything that needs confirming.</p></div><a class="text-link" href="/machines/?sort=featured">Explore the catalogue <span aria-hidden="true">→</span></a></div>
+				<div class="product-grid">{featured.map((product) => <ProductCard product={product} />)}</div>
+			</div>
+		</section>}
+
+		<section class="section-space process-section">
+			<div class="container-page process-layout">
+				<div class="process-heading"><p class="eyebrow">A clear next step</p><h2 class="section-heading">From browsing to a useful conversation.</h2><p class="muted">A straightforward way to share your requirements and get the details you need.</p><a class="btn btn-ink" href="/machines/">Start with the catalogue</a></div>
+				<ol class="process-list">
+					<li><span>01</span><div><strong>Browse the listings</strong><p>Search the catalogue or choose a category.</p></div></li>
+					<li><span>02</span><div><strong>Review the information</strong><p>Check the details shown on the machine page.</p></div></li>
+					<li><span>03</span><div><strong>Send an enquiry</strong><p>Tell the business what you need and which machine you are considering.</p></div></li>
+					<li><span>04</span><div><strong>Confirm directly</strong><p>Discuss availability, pricing, and arrangements with the business.</p></div></li>
+				</ol>
+			</div>
+		</section>
+
+		<section class="section-space about-section">
+			<div class="container-page about-grid">
+				<div class="about-stamp" aria-hidden="true"><span>SGRS</span><small>BIRATNAGAR<br />NEPAL</small></div>
+				<div><p class="eyebrow">Shree Ganesh Riddhi Siddhi Traders</p><h2 class="section-heading">A catalogue built around what you need to know.</h2><p class="muted">Product specifications, photos, prices, and availability are shown when they have been confirmed. If a listing needs more detail, send a question and the business can clarify it with you.</p><div class="about-links"><a href="/about/">About the business <span aria-hidden="true">→</span></a><a href="/guides/">Read the buying guide <span aria-hidden="true">→</span></a></div></div>
+			</div>
+		</section>
+
+		<section class="contact-band"><div class="container-page contact-band-inner"><div><p class="eyebrow">Have a machinery requirement?</p><h2>Tell us what you are looking for.</h2><p>Share the application, machine, or category you have in mind.</p></div><a class="btn btn-primary" href="/contact/">Send an enquiry <span aria-hidden="true">→</span></a></div></section>
+	</main>
 </Layout>
+
+<style>
+	.hero { position: relative; overflow: hidden; background: #112438; color: #fff; }
+	.hero-grid { display: grid; min-height: 39rem; align-items: center; gap: 2.5rem; padding-block: 4rem 5rem; }
+	.hero-copy { position: relative; z-index: 1; max-width: 40rem; }
+	.hero .eyebrow { color: #f2bc52; }
+	.hero h1 { margin: .9rem 0 1.15rem; font-family: var(--font-display); font-size: clamp(3rem, 7vw, 5.7rem); font-weight: 750; letter-spacing: -.06em; line-height: .99; }
+	.hero h1 span { color: #c9d8e2; }
+	.hero-lede { max-width: 37rem; margin: 0; color: #c7d3dc; font-size: clamp(1rem, 1.5vw, 1.12rem); line-height: 1.7; }
+	.hero-actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.7rem; }
+	.hero-note { display: flex; align-items: center; gap: .7rem; margin-top: 2.2rem; color: #c0ccd5; font-size: .8rem; }
+	.note-rule { width: 2.3rem; height: 2px; background: var(--accent); }
+	.hero-visual { position: relative; display: none; min-height: 27rem; border: 1px solid rgba(220,235,245,.2); background: linear-gradient(145deg, rgba(255,255,255,.035), rgba(255,255,255,.012)); }
+	.visual-topline { position: absolute; z-index: 1; top: 1rem; right: 1rem; left: 1rem; display: flex; justify-content: space-between; gap: 1rem; color: #bccad4; font-size: .61rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+	.visual-grid { position: absolute; inset: 3.5rem 1.4rem 3.8rem; opacity: .26; background-image: linear-gradient(rgba(220,235,245,.16) 1px, transparent 1px), linear-gradient(90deg, rgba(220,235,245,.16) 1px, transparent 1px); background-size: 2.3rem 2.3rem; }
+	.hero-machine { position: absolute; top: 50%; left: 50%; width: 84%; color: #d7e4eb; transform: translate(-50%,-50%); }
+	.visual-caption { position: absolute; bottom: 1rem; left: 1rem; display: grid; gap: .1rem; }
+	.visual-caption strong { font-family: var(--font-display); font-size: 1rem; }
+	.visual-caption span { color: #bdcbd5; font-size: .73rem; }
+	.visual-index { position: absolute; right: 1rem; bottom: 1.25rem; color: #f1bd55; font-size: .68rem; font-weight: 800; letter-spacing: .12em; }
+	.hero-baseline { border-top: 1px solid rgba(230,240,247,.18); }
+	.hero-baseline .container-page { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .3rem 1rem; padding-block: .75rem; color: #c2ced7; font-size: .73rem; }
+	.section-intro { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; margin-bottom: 1.8rem; }
+	.section-intro h2 { margin: .4rem 0 .6rem; }
+	.section-intro p:not(.eyebrow) { margin: 0; }
+	.text-link { display: inline-flex; min-width: max-content; align-items: center; gap: .45rem; color: var(--link); font-size: .86rem; font-weight: 750; text-decoration: none; }
+	.text-link:hover { text-decoration: underline; }
+	.category-section { background: var(--page); }
+	.category-grid { display: grid; grid-template-columns: 1fr; gap: .7rem; }
+	.category-tile { display: grid; min-height: 6.3rem; grid-template-columns: 2.5rem 1fr 1.5rem; align-items: center; gap: .9rem; border: 1px solid var(--line); border-left: 3px solid transparent; background: var(--page); padding: .95rem 1rem; color: var(--body); text-decoration: none; transition: border-color .16s, background .16s, transform .16s; }
+	.category-tile:hover { transform: translateY(-2px); border-left-color: var(--accent); background: var(--surface); }
+	.category-number { display: grid; width: 2.3rem; height: 2.3rem; place-items: center; border: 1px solid var(--line); color: var(--link); font-size: .7rem; font-weight: 850; }
+	.category-copy { display: grid; gap: .18rem; }
+	.category-copy strong { font-family: var(--font-display); font-size: .98rem; line-height: 1.25; }
+	.category-copy small { color: var(--muted); font-size: .78rem; }
+	.category-arrow { justify-self: end; color: var(--link); font-size: 1.1rem; }
+	.empty-category { display: grid; gap: .5rem; padding: 1.5rem; color: var(--muted); }
+	.empty-category strong { color: var(--body); }
+	.empty-category a { width: fit-content; font-weight: 700; }
+	.featured-section { background: var(--surface); }
+	.product-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+	.process-section { background: var(--surface); }
+	.process-layout { display: grid; gap: 2.2rem; }
+	.process-heading h2 { margin: .45rem 0 .8rem; }
+	.process-heading > p:not(.eyebrow) { max-width: 28rem; margin-bottom: 1.35rem; }
+	.process-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+	.process-list li { display: grid; grid-template-columns: 3.2rem 1fr; gap: .9rem; border-top: 1px solid var(--line); padding: 1rem 0; }
+	.process-list li > span { color: var(--link); font-size: .76rem; font-weight: 850; letter-spacing: .08em; }
+	.process-list strong { font-family: var(--font-display); font-size: 1.03rem; }
+	.process-list p { margin: .15rem 0 0; color: var(--muted); font-size: .88rem; }
+	.about-section { background: var(--page); }
+	.about-grid { display: grid; align-items: center; gap: 2rem; }
+	.about-grid h2 { margin: .45rem 0 .8rem; }
+	.about-grid > div:last-child > p:not(.eyebrow) { max-width: 43rem; }
+	.about-stamp { display: grid; width: 11rem; height: 11rem; align-content: center; justify-items: center; border: 1px solid var(--line); background: var(--surface); color: var(--link); }
+	.about-stamp span { font-family: var(--font-display); font-size: 2.4rem; font-weight: 850; letter-spacing: .1em; }
+	.about-stamp small { margin-top: .4rem; color: var(--muted); font-size: .63rem; font-weight: 800; letter-spacing: .2em; line-height: 1.5; text-align: center; }
+	.about-links { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; margin-top: 1.3rem; }
+	.about-links a { font-size: .87rem; font-weight: 750; text-decoration: none; }
+	.contact-band { background: var(--navy); color: #fff; }
+	.contact-band-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.5rem; padding-block: 2.6rem; }
+	.contact-band h2 { margin: .25rem 0; font-family: var(--font-display); font-size: clamp(1.6rem, 3.5vw, 2.4rem); letter-spacing: -.035em; }
+	.contact-band p:not(.eyebrow) { margin: 0; color: #c5d1d9; font-size: .9rem; }
+	.contact-band .eyebrow { margin: 0; color: #f2bc52; }
+	@media (min-width: 40rem) { .category-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .product-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+	@media (min-width: 60rem) { .hero-grid { grid-template-columns: 1.05fr .95fr; } .hero-visual { display: block; } .category-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } .process-layout { grid-template-columns: .85fr 1.15fr; gap: 4rem; } .about-grid { grid-template-columns: 15rem 1fr; gap: 4rem; } .product-grid { grid-template-columns: repeat(4,minmax(0,1fr)); } }
+	@media (max-width: 39.99rem) { .section-intro { align-items: start; flex-direction: column; } .hero-grid { min-height: 35rem; } }
+</style>

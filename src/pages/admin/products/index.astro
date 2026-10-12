@@ -1,0 +1,39 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { listAdminProducts } from '../../../lib/db';
+import { getAdminEmail } from '../../../lib/admin-auth';
+
+const email = await getAdminEmail(Astro.request);
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+const products = email ? await listAdminProducts() : [];
+const saved = Astro.url.searchParams.has('saved');
+const cleanupFailed = Astro.url.searchParams.get('error') === 'cleanup';
+---
+
+{email ? <AdminLayout title="Products" active="products" email={email}>
+	<div class="admin-page-heading"><div><p class="eyebrow">Catalogue</p><h1>Products</h1><p>Published listings appear in the public catalogue.</p></div><a class="btn btn-primary" href="/admin/products/new/">Add product</a></div>
+	{saved && <p class="admin-callout" role="status">The product changes were saved.</p>}
+	{cleanupFailed && <p class="admin-alert" role="alert">The product was deleted, but some image files may remain in private storage. Contact the site administrator to clean them up.</p>}
+	{products.length ? <div class="product-admin-list">
+		{products.map((product) => <article class="product-admin-row">
+			<div class="product-admin-thumb">{product.images[0] ? <img src={`/api/admin/media/${product.images[0].id}/`} alt="" width="96" height="72" /> : <img src="/images/machine-placeholder.svg" alt="" width="96" height="72" />}</div>
+			<div class="product-admin-copy"><a href={`/admin/products/${product.id}/`}>{product.name}</a><small>{product.category_name} · Updated {new Date(`${product.updated_at}Z`).toLocaleDateString('en-NP')}</small></div>
+			<div class="product-admin-badges"><span class="status-label">{product.status}</span>{product.is_demo === 1 && <span class="status-label demo-status">Sample</span>}</div>
+			<a class="btn btn-outline edit-button" href={`/admin/products/${product.id}/`}>Edit</a>
+		</article>)}
+	</div> : <div class="admin-empty">No products have been added. Create a product to start building the catalogue.</div>}
+</AdminLayout> : <main class="admin-denied"><h1>Administrator access required.</h1><p>Use the configured Cloudflare Access application to continue.</p><a class="btn btn-outline" href="/">Return to public site</a></main>}
+
+<style>
+	.product-admin-list { display: grid; gap: .55rem; }
+	.product-admin-row { display: grid; grid-template-columns: 4.5rem minmax(0,1fr); align-items: center; gap: .7rem; border: 1px solid var(--line); border-radius: .35rem; background: var(--page); padding: .55rem; }
+	.product-admin-thumb { overflow: hidden; aspect-ratio: 4/3; background: var(--surface); }
+	.product-admin-thumb img { width: 100%; height: 100%; object-fit: contain; }
+	.product-admin-copy { display: grid; min-width: 0; }
+	.product-admin-copy a { overflow: hidden; color: var(--body); font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+	.product-admin-copy small { color: var(--muted); font-size: .73rem; }
+	.product-admin-badges { display: flex; grid-column: 2; flex-wrap: wrap; gap: .3rem; }
+	.demo-status { background: #fff3d4; color: #624714; }
+	.edit-button { grid-column: 2; width: fit-content; min-height: 2.4rem; padding: .45rem .75rem; }
+	@media (min-width: 48rem) { .product-admin-row { grid-template-columns: 5rem minmax(0,1fr) auto auto; padding: .7rem; } .product-admin-badges, .edit-button { grid-column: auto; } }
+</style>

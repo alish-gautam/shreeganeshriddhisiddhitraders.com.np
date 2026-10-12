@@ -1,0 +1,32 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getSiteSettings } from '../../lib/site';
+const settings = await getSiteSettings();
+---
+
+<Layout title={`About | ${settings.businessName}`} description="Learn about Shree Ganesh Riddhi Siddhi Traders, a machinery trading business based in Biratnagar, Koshi Province, Nepal.">
+	<main id="main-content">
+		<Breadcrumbs items={[{ label: 'About' }]} />
+		<article class="container-page editorial-page">
+			<p class="eyebrow">About the business</p><h1>Machinery trading in Biratnagar.</h1>
+			<p class="editorial-lede">{settings.about}</p>
+			<div class="editorial-rule"></div>
+			<h2>Clear information before the next step.</h2>
+			<p>This website provides a place to review machinery listings and send questions to the business. Product details, pricing, availability, and any arrangements should be confirmed directly before making a purchase decision.</p>
+			<h2>Visit or get in touch</h2>
+			<p>{settings.address}. Please confirm the address with the business before visiting.</p>
+			<div class="editorial-actions"><a class="btn btn-primary" href="/machines/">Browse machinery</a><a class="btn btn-outline" href="/contact/">Contact the business</a></div>
+		</article>
+	</main>
+</Layout>
+
+<style>
+	.editorial-page { max-width: 54rem; padding-block: 1rem 5rem; }
+	.editorial-page h1 { max-width: 47rem; margin: .5rem 0 1rem; font-family: var(--font-display); font-size: clamp(2.7rem,6vw,4.5rem); letter-spacing: -.06em; line-height: 1.03; }
+	.editorial-lede { color: var(--muted); font-size: clamp(1.05rem,2vw,1.3rem); line-height: 1.7; }
+	.editorial-rule { width: 4rem; height: 3px; margin-block: 2rem; background: var(--accent); }
+	.editorial-page h2 { margin: 1.7rem 0 .35rem; font-family: var(--font-display); font-size: 1.4rem; }
+	.editorial-page p:not(.eyebrow) { max-width: 48rem; }
+	.editorial-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1.5rem; }
+</style>
